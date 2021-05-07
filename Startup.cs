@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace explorecalifornia
 {
@@ -25,15 +26,22 @@ namespace explorecalifornia
         }
         public void ConfigureServices(IServiceCollection services)
         {
-           
-
-            services.AddMvc();
-
+            services.AddTransient<FormattingService>();
             services.AddDbContext<BlogDataContext>(options =>
             {
                 var connectionString = configuration.GetConnectionString("BlogDataContext");
                 options.UseSqlServer(connectionString);
             });
+
+            services.AddDbContext<IdentityDataContext>(options =>
+            {
+                var connectionString = configuration.GetConnectionString("IdentityDataContext");
+                options.UseSqlServer(connectionString);
+            });
+            services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<IdentityDataContext>();
+            services.AddMvc();
+
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +63,8 @@ namespace explorecalifornia
 
                 await next();
             });
+
+            app.UseAuthentication();
 
             app.UseEndpoints(routes => {
                 routes.MapControllerRoute("Default",
